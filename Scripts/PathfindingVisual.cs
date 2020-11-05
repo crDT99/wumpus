@@ -41,11 +41,14 @@ public class PathfindingVisual : MonoBehaviour {
 
                 Nodo Nodo = grid.GetGridObject(x, y);
 
-                if (Nodo.casillaValida) {
+                if (Nodo.casillaValida)
+                {
                     quadSize = Vector3.zero;
                 }
-
-                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, grid.GetWorldPosition(x, y) + quadSize * .45f, 0f, quadSize, Vector2.zero, Vector2.zero);
+                Vector2 Prueba = new Vector2(0f, 0f);
+                Vector2 Prueba2 = new Vector2(1f, 1f);
+                //MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, grid.GetWorldPosition(x, y) + quadSize * .45f, 0f, quadSize, Prueba, Vector2.zero);
+                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, grid.GetWorldPosition(x, y) + quadSize * .45f, 0f, quadSize, Prueba, Prueba2);
             }
         }
 
