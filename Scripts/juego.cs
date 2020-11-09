@@ -319,15 +319,54 @@ public class juego : MonoBehaviour
 
     public void inicio()
     {
+        bool succeed1 = false;
+        bool succeed2 = false;
         if (!WumpusExiste)
         {
-            int RandomXW = Random.Range(5 , 20);
-            int RandomXW = Random.Range(5, 20);
+            if(!succeed1)
+            {
+                int RandomXW = Random.Range(5 , 20);
+                int RandomyW = Random.Range(3, 10);
+                
+                if(grilla.GetGridObject(RandomXW, RandomyW).Grilla_Real == 0)
+                {
+                    grilla.GetGridObject(RandomXW, RandomyW).CrearReal(2);
+                    wumpus[0] = RandomXW;
+                    wumpus[1] = RandomyW;
+                    foreach (CasillaNodo NodoValido in EncontrarVecindad(grilla.GetGridObject(RandomXW, RandomyW)))
+                    {
+                        NodoValido.CrearReal(4);
+                    }
+                    Debug.Log("wumpus hecho");
+                    succeed1 = true;
+                    WumpusExiste = true;
+                }
+              
+            }
+            
+        }
+        
+        if (!OroExiste)
+        {
+            if (!succeed2)
+            {
+                int RandomXW = Random.Range(5, 20);
+                int RandomyW = Random.Range(3, 10);
 
+                if (grilla.GetGridObject(RandomXW, RandomyW).Grilla_Real == 0)
+                {
+                    grilla.GetGridObject(RandomXW, RandomyW).CrearReal(5);
+                    oro[0] = RandomXW;
+                    oro[1] = RandomyW;
+                  
+                    Debug.Log("wumpus hecho");
+                    succeed2 = true;
+                    OroExiste = true;
+                }
+
+            }
 
         }
-         private bool OroExiste
-
 
     }
 
