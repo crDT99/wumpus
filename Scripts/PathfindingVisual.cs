@@ -4,23 +4,26 @@ using UnityEngine;
 
 public class PathfindingVisual : MonoBehaviour {
 
-    private Grilla<Nodo> grid;
+    private Grilla<CasillaNodo> grid;
     private Mesh mesh;
     private bool updateMesh;
+    public int tipo;
+
+
 
     private void Awake() {
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
     }
 
-    public void SetGrid(Grilla<Nodo> grid) {
+    public void SetGrid(Grilla<CasillaNodo> grid) {
         this.grid = grid;
         UpdateVisual();
 
         grid.OnGridObjectChanged += Grid_OnGridValueChanged;
     }
 
-    private void Grid_OnGridValueChanged(object sender, Grilla<Nodo>.OnGridObjectChangedEventArgs e) {
+    private void Grid_OnGridValueChanged(object sender, Grilla<CasillaNodo>.OnGridObjectChangedEventArgs e) {
         updateMesh = true;
     }
 
@@ -39,12 +42,13 @@ public class PathfindingVisual : MonoBehaviour {
                 int index = x * grid.GetHeight() + y;
                 Vector3 quadSize = new Vector3(1, 1) * grid.GetCellSize();
 
-                Nodo Nodo = grid.GetGridObject(x, y);
+                CasillaNodo CasillaNodo = grid.GetGridObject(x, y);
 
-                if (Nodo.casillaValida)
+                if (CasillaNodo.Grilla_Real != tipo)
                 {
                     quadSize = Vector3.zero;
                 }
+      
                 Vector2 Prueba = new Vector2(0f, 0f);
                 Vector2 Prueba2 = new Vector2(1f, 1f);
                 //MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, grid.GetWorldPosition(x, y) + quadSize * .45f, 0f, quadSize, Prueba, Vector2.zero);

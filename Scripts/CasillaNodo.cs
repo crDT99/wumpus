@@ -12,15 +12,13 @@ public class CasillaNodo : MonoBehaviour
 
 
 
-    public CasillaNodo(Grilla<CasillaNodo> grilla, int x, int y, int Grilla_Real, int Grilla_Agente) //constructor de la clase nodo
+    public CasillaNodo(Grilla<CasillaNodo> grilla, int x, int y) //constructor de la clase nodo
     {
         this.grilla = grilla;
         this.x = x;
         this.y = y;
-        this.Grilla_Real = Grilla_Real;
-        this.Grilla_Agente = Grilla_Agente;
-
-      
+        this.Grilla_Real = 0;
+        this.Grilla_Agente = 0;
     }
 
     public void CrearReal(int tipo)

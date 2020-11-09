@@ -8,8 +8,9 @@ public class Wumpus_World
 
     private Grilla<CasillaNodo> grilla;
 
-    private List<CasillaNodo> CaminosPosiblesSeguros;
+    private List<CasillaNodo> SegurosSinVisitar;
     private List<CasillaNodo> CaminosVisitados;
+    private List<CasillaNodo> VecindadValida;
 
 
     public Wumpus_World(int width, int height)
@@ -29,70 +30,66 @@ public class Wumpus_World
     public void ResolverCaminito(int startX, int startY)
     {
         CasillaNodo StartNode = grilla.GetGridObject(startX, startY);
-
-        CaminosPosiblesSeguros = new List<CasillaNodo> { StartNode }; // casillas seguras posibles
-        CaminosVisitados = new List<CasillaNodo>();
-
-    
-        PathfindingDebugStepVisual.Instance.ClearSnapshots();
-        PathfindingDebugStepVisual.Instance.TakeSnapshot(grilla, StartNode, CaminosPosiblesSeguros, CaminosVisitados);
+        CasillaNodo NodoActual; // es la pocicion del agente
+        VecindadValida = new List<CasillaNodo> { StartNode }; // casillas de la vecindad que puede visitar
+        SegurosSinVisitar = new List<CasillaNodo> { StartNode }; // casillas seguras posibles sin visitar
+        CaminosVisitados = new List<CasillaNodo> { StartNode };
 
 
+        //PathfindingDebugStepVisual.Instance.ClearSnapshots();
+        //PathfindingDebugStepVisual.Instance.TakeSnapshot(grilla, StartNode, SegurosSinVisitar, CaminosVisitados);
 
+        NodoActual = StartNode;
 
-        while (CaminosPosiblesSeguros.Count > 0) // mientras que haya casillas seguras
+        while (SegurosSinVisitar.Count > 0) // mientras que haya casillas seguras sin visitar
         {
 
-            EvaluarVecindadEfectos(CaminosPosiblesSeguros);
-
-
-
-            CasillaNodo NodoActual = EncontrarValorMenor(CaminosPosibles, type);
-            if (NodoActual == endNode)
-            {
-
-                PathfindingDebugStepVisual.Instance.TakeSnapshot(grilla, StartNode, CaminosPosibles, CaminosVisitados);
-                PathfindingDebugStepVisual.Instance.TakeSnapshotFinalPath(grilla, CaminoCalculado(endNode));
-                return CaminoCalculado(endNode);
-            }
-            CaminosPosibles.Remove(NodoActual);
+           SegurosSinVisitar.Remove(NodoActual);
             CaminosVisitados.Add(NodoActual);
 
-            foreach (CasillaNodo nodoVecino in ValorarVecindad(NodoActual))
+            EvaluarVecindadEfectos(NodoActual);
+            //VecindadValida = ValorarVecindad(NodoActual);
+
+            foreach (CasillaNodo NodoValido in EncontrarVecindad(NodoActual)) // para cada vecino valido ....
             {
-                if (CaminosVisitados.Contains(nodoVecino)) continue;
-                if (!nodoVecino.casillaValida)
-                {
-                    CaminosVisitados.Add(nodoVecino);
+
+                if (CaminosVisitados.Contains(NodoValido)) continue;  //si el vecino ya fue visitado, ignorelo
+
+
+                if (NodoValido.Grilla_Agente == 0 )
+                {   
+                    VecindadValida.Add(NodoValido);
+
+                    if (!SegurosSinVisitar.Contains(NodoValido))
+                    {
+                       SegurosSinVisitar.Add(NodoValido);                     
+                    }
+
                     continue;
                 }
-                int CostoGIdeal = NodoActual.CostoG + CalcularDistanciaEntre(NodoActual, nodoVecino);
-                if (CostoGIdeal < nodoVecino.CostoG)
-                {
-                    nodoVecino.Padre = NodoActual;
-                    nodoVecino.CostoG = CostoGIdeal;
-                    nodoVecino.CostoH = CalcularDistanciaEntre(nodoVecino, endNode);
-                    nodoVecino.CalcularCostoF();
-                    if (!CaminosPosibles.Contains(nodoVecino))
-                    {
-                        CaminosPosibles.Add(nodoVecino);
-                    }
-                }
-                PathfindingDebugStepVisual.Instance.TakeSnapshot(grilla, StartNode, CaminosPosibles, CaminosVisitados);
             }
+
+
+            if (EvaluarVecindadMov(VecindadValida) != null) // si la vecindad tiene un nodo seguro no visitado ....
+            {
+                 NodoActual = EvaluarVecindadMov(VecindadValida); // el nodo al que se mueve es el mejor que determina evaluarvecindad ... osea el primero que encuentra seguro en orden horario
+
+            }else
+            {
+                NodoActual = NodoActual.Padre;
+
+
+            }
+
+         
+                //PathfindingDebugStepVisual.Instance.TakeSnapshot(grilla, StartNode,SegurosSinVisitar, CaminosVisitados);
         }
-
-        //una vez se acaben los caminos posibles y no hay solucion
-        return null;
-
-
-
     }
 
+      
 
 
-
-    private List<CasillaNodo> EncontrarVecindad(CasillaNodo nodoactual) //retorna la vecindad de la casilla nodoactual
+   public List<CasillaNodo> EncontrarVecindad(CasillaNodo nodoactual) //retorna la vecindad de la casilla nodoactual
     {
         List<CasillaNodo> ListaDeVecinos = new List<CasillaNodo>();
         // Arriba
