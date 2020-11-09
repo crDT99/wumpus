@@ -22,7 +22,7 @@ public class PathfindingDebugStepVisual : MonoBehaviour {
         gridSnapshotActionList = new List<GridSnapshotAction>();
     }
 
-    public void Setup(Grilla<Nodo> grid) {
+    public void Setup(Grilla<CasillaNodo> grid) {
         visualNodeArray = new Transform[grid.GetWidth(), grid.GetHeight()];
 
         for (int x = 0; x < grid.GetWidth(); x++) {
@@ -70,27 +70,24 @@ public class PathfindingDebugStepVisual : MonoBehaviour {
         gridSnapshotActionList.Clear();
     }
 
-    public void TakeSnapshot(Grilla<Nodo> grid, Nodo current, List<Nodo> openList, List<Nodo> closedList) {
+    public void TakeSnapshot(Grilla<CasillaNodo> grid, CasillaNodo current, List<CasillaNodo> openList, List<CasillaNodo> closedList) {
         GridSnapshotAction gridSnapshotAction = new GridSnapshotAction();
         gridSnapshotAction.AddAction(HideNodeVisuals);
         
         for (int x = 0; x < grid.GetWidth(); x++) {
             for (int y = 0; y < grid.GetHeight(); y++) {
-                Nodo Nodo = grid.GetGridObject(x, y);
+                CasillaNodo CasillaNodo = grid.GetGridObject(x, y);
 
-                int CostoG = Nodo.CostoG;
-                int CostoH = Nodo.CostoH;
-                int CostoF = Nodo.CostoF;
-                Vector3 gridPosition = new Vector3(Nodo.x, Nodo.y) * grid.GetCellSize() + Vector3.one * grid.GetCellSize() * .5f;
-                bool isCurrent = Nodo == current;
-                bool isInOpenList = openList.Contains(Nodo);
-                bool isInClosedList = closedList.Contains(Nodo);
+              
+                Vector3 gridPosition = new Vector3(CasillaNodo.x, CasillaNodo.y) * grid.GetCellSize() + Vector3.one * grid.GetCellSize() * .5f;
+                bool isCurrent = CasillaNodo == current;
+                bool isInOpenList = openList.Contains(CasillaNodo);
+                bool isInClosedList = closedList.Contains(CasillaNodo);
                 int tmpX = x;
                 int tmpY = y;
 
                 gridSnapshotAction.AddAction(() => {
                     Transform visualNode = visualNodeArray[tmpX, tmpY];
-                    SetupVisualNode(visualNode, CostoG, CostoH, CostoF);
 
                     Color backgroundColor = UtilsClass.GetColorFromString("636363");
 
@@ -112,25 +109,23 @@ public class PathfindingDebugStepVisual : MonoBehaviour {
         gridSnapshotActionList.Add(gridSnapshotAction);
     }
 
-    public void TakeSnapshotFinalPath(Grilla<Nodo> grid, List<Nodo> path) {
+    public void TakeSnapshotFinalPath(Grilla<CasillaNodo> grid, List<CasillaNodo> path) {
         GridSnapshotAction gridSnapshotAction = new GridSnapshotAction();
         gridSnapshotAction.AddAction(HideNodeVisuals);
         
         for (int x = 0; x < grid.GetWidth(); x++) {
             for (int y = 0; y < grid.GetHeight(); y++) {
-                Nodo Nodo = grid.GetGridObject(x, y);
+                CasillaNodo CasillaNodo = grid.GetGridObject(x, y);
 
-                int CostoG = Nodo.CostoG;
-                int CostoH = Nodo.CostoH;
-                int CostoF = Nodo.CostoF;
-                Vector3 gridPosition = new Vector3(Nodo.x, Nodo.y) * grid.GetCellSize() + Vector3.one * grid.GetCellSize() * .5f;
-                bool isInPath = path.Contains(Nodo);
+           
+                Vector3 gridPosition = new Vector3(CasillaNodo.x, CasillaNodo.y) * grid.GetCellSize() + Vector3.one * grid.GetCellSize() * .5f;
+                bool isInPath = path.Contains(CasillaNodo);
                 int tmpX = x;
                 int tmpY = y;
 
                 gridSnapshotAction.AddAction(() => { 
                     Transform visualNode = visualNodeArray[tmpX, tmpY];
-                    SetupVisualNode(visualNode, CostoG, CostoH, CostoF);
+
 
                     Color backgroundColor;
 

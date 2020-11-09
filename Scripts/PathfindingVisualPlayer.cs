@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PathfindingVisual : MonoBehaviour {
+public class PathfindingVisualPlayer : MonoBehaviour
+{
 
     private Grilla<CasillaNodo> grid;
     private Mesh mesh;
@@ -11,44 +12,52 @@ public class PathfindingVisual : MonoBehaviour {
 
 
 
-    private void Awake() {
+    private void Awake()
+    {
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
     }
 
-    public void SetGrid(Grilla<CasillaNodo> grid) {
+    public void SetGrid(Grilla<CasillaNodo> grid)
+    {
         this.grid = grid;
         UpdateVisual();
 
         grid.OnGridObjectChanged += Grid_OnGridValueChanged;
     }
 
-    private void Grid_OnGridValueChanged(object sender, Grilla<CasillaNodo>.OnGridObjectChangedEventArgs e) {
+    private void Grid_OnGridValueChanged(object sender, Grilla<CasillaNodo>.OnGridObjectChangedEventArgs e)
+    {
         updateMesh = true;
     }
 
-    private void LateUpdate() {
-        if (updateMesh) {
+    private void LateUpdate()
+    {
+        if (updateMesh)
+        {
             updateMesh = false;
             UpdateVisual();
         }
     }
 
-    private void UpdateVisual() {
+    private void UpdateVisual()
+    {
         MeshUtils.CreateEmptyMeshArrays(grid.GetWidth() * grid.GetHeight(), out Vector3[] vertices, out Vector2[] uv, out int[] triangles);
 
-        for (int x = 0; x < grid.GetWidth(); x++) {
-            for (int y = 0; y < grid.GetHeight(); y++) {
+        for (int x = 0; x < grid.GetWidth(); x++)
+        {
+            for (int y = 0; y < grid.GetHeight(); y++)
+            {
                 int index = x * grid.GetHeight() + y;
                 Vector3 quadSize = new Vector3(1, 1) * grid.GetCellSize();
 
                 CasillaNodo CasillaNodo = grid.GetGridObject(x, y);
 
-                if (CasillaNodo.Grilla_Real != tipo)
+                if (CasillaNodo.Grilla_Agente != tipo)
                 {
                     quadSize = Vector3.zero;
                 }
-      
+
                 Vector2 Prueba = new Vector2(0f, 0f);
                 Vector2 Prueba2 = new Vector2(1f, 1f);
                 //MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, grid.GetWorldPosition(x, y) + quadSize * .45f, 0f, quadSize, Prueba, Vector2.zero);
@@ -60,8 +69,6 @@ public class PathfindingVisual : MonoBehaviour {
         mesh.uv = uv;
         mesh.triangles = triangles;
     }
-
-
 
 }
 

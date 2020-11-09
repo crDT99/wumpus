@@ -13,6 +13,12 @@ public class juego : MonoBehaviour
     private bool OroExiste = false;
     private int[] wumpus = { 0, 0 };
     private int[] oro = { 0, 0 };
+
+    private Grilla<CasillaNodo> grilla;
+    private List<CasillaNodo> SegurosSinVisitar;
+    private List<CasillaNodo> CaminosVisitados;
+    private List<CasillaNodo> VecindadValida;
+    private CasillaNodo NodoActual,StartNode;
     //[SerializeField] private PathfindingDebugStepVisual pathfindingDebugStepVisual;
 
 
@@ -22,143 +28,251 @@ public class juego : MonoBehaviour
     [SerializeField] private PathfindingVisual pathfindingVisual3;
     [SerializeField] private PathfindingVisual pathfindingVisual4;
     [SerializeField] private PathfindingVisual pathfindingVisual5;
+    [SerializeField] private PathfindingVisualPlayer pathfindingVisualP;
+    [SerializeField] private PathfindingVisualPlayer pathfindingVisualP1;
+    [SerializeField] private PathfindingVisualPlayer pathfindingVisualP2;
+    [SerializeField] private PathfindingVisualPlayer pathfindingVisualP3;
     private Wumpus_World MundoW;
 
+    public void iniciargrilla(int width, int height)
+    {
+
+        grilla = new Grilla<CasillaNodo>(width, height, 50f, Vector3.zero, (Grilla<CasillaNodo> g, int x, int y) => new CasillaNodo(g, x, y)); // crea la grilla con el ancho y el alto especificados
+
+    }
+
+    public Grilla<CasillaNodo> GetGrilla()
+    {
+        return grilla;  // recupera la grilla actual
+
+    }
 
     private void Start()
     {
-        MundoW = new Wumpus_World(20, 10);
-
-        pathfindingVisual.SetGrid(MundoW.GetGrilla());
-        pathfindingVisual1.SetGrid(MundoW.GetGrilla());
-        pathfindingVisual2.SetGrid(MundoW.GetGrilla());
-        pathfindingVisual3.SetGrid(MundoW.GetGrilla());
-        pathfindingVisual4.SetGrid(MundoW.GetGrilla());
-        pathfindingVisual5.SetGrid(MundoW.GetGrilla());
+       
+        iniciargrilla(20, 10);
+        //pathfindingDebugStepVisual.Setup(grilla);
+        pathfindingVisual.SetGrid(grilla);
+        pathfindingVisual1.SetGrid(grilla);
+        pathfindingVisual2.SetGrid(grilla);
+        pathfindingVisual3.SetGrid(grilla);
+        pathfindingVisual4.SetGrid(grilla);
+        pathfindingVisual5.SetGrid(grilla);
+        pathfindingVisualP.SetGrid(grilla);
+        pathfindingVisualP1.SetGrid(grilla);
+        pathfindingVisualP2.SetGrid(grilla);
+        pathfindingVisualP3.SetGrid(grilla);
+        StartNode = grilla.GetGridObject(0, 0);
+        VecindadValida = new List<CasillaNodo>(); // casillas de la vecindad que puede visitar
+        SegurosSinVisitar = new List<CasillaNodo> { StartNode }; // casillas seguras posibles sin visitar
+        CaminosVisitados = new List<CasillaNodo>();
+        NodoActual = grilla.GetGridObject(0, 0);
+        NodoActual.CrearPosible(-1);
+      
     }
 
     private void Update()
     {
 
-
-        if (EditorType == 0)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (Input.GetMouseButtonDown(0))
+            if (SegurosSinVisitar.Count > 0) // mientras que haya casillas seguras sin visitar
             {
-                Vector3 mouseWordlPosition = UtilsClass.GetMouseWorldPosition();
-                MundoW.GetGrilla().GetXY(mouseWordlPosition, out int x, out int y);
-                if (MundoW.GetNodo(x, y).Grilla_Real != 1)
+                Debug.Log("movimiento");
+          
+                SegurosSinVisitar.Remove(NodoActual);
+                NodoActual.visitar(true);
+
+                EvaluarVecindadEfectos(NodoActual);
+                //VecindadValida = ValorarVecindad(NodoActual);
+
+                foreach (CasillaNodo NodoValido in EncontrarVecindad(NodoActual)) // para cada vecino valido ....
                 {
-                    MundoW.GetNodo(x, y).CrearReal(1);
-                    Debug.Log("pozo hecho");
+                    Debug.Log("foeach");
+                    
 
-                    foreach (CasillaNodo NodoValido in MundoW.EncontrarVecindad(MundoW.GetNodo(x, y)))
+
+                    if (NodoValido.Grilla_Agente == 0 )
                     {
-                        NodoValido.CrearReal(3);
-                    }
+                        Debug.Log("es seguro el paso");
 
+                        if (NodoValido.Visitado)
+                        { Debug.Log("ya esta visitado y es una mierda");
+                            continue;
+                        }
+                        else
+                        {
+                            VecindadValida.Add(NodoValido);
+                            Debug.Log("añade vecindad");
+                            if (!SegurosSinVisitar.Contains(NodoValido))
+                            {
+                                Debug.Log("añade nodo");
+                                SegurosSinVisitar.Add(NodoValido);
+                            }
 
-                }
-                else
-                {
-                    MundoW.GetNodo(x, y).CrearReal(0);
-                    foreach (CasillaNodo NodoValido in MundoW.EncontrarVecindad(MundoW.GetNodo(x, y)))
-                    {
-                        NodoValido.CrearReal(0);
-                    }
-                    Debug.Log("retirado");
-                }
-                MundoW.GetGrilla();
-
-            }
-
-        }
-        if (EditorType == 1)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                Vector3 mouseWordlPosition = UtilsClass.GetMouseWorldPosition();
-                MundoW.GetGrilla().GetXY(mouseWordlPosition, out int x, out int y);
-                if (MundoW.GetNodo(x, y).Grilla_Real != 2)
-                {
-
-                    if (WumpusExiste == false)
-                    {
-                        WumpusExiste = true;
+                        }
+                       
                     }
                     else
                     {
-                        MundoW.GetNodo(wumpus[0], wumpus[1]).CrearReal(0);
-                        foreach (CasillaNodo NodoValido in MundoW.EncontrarVecindad(MundoW.GetNodo(wumpus[0], wumpus[1])))
+                        
+                        Debug.Log("no entiendo");
+
+                    }
+                }
+
+
+                if (VecindadValida.Count >0) // si la vecindad tiene un nodo seguro no visitado ....
+                {
+                    Debug.Log("se mueve");
+                    NodoActual.CrearPosible(0);
+                    CaminosVisitados.Add(NodoActual);
+                    NodoActual.Crearpadre(NodoActual);
+                    NodoActual = EvaluarVecindadMov(VecindadValida); // el nodo al que se mueve es el mejor que determina evaluarvecindad ... osea el primero que encuentra seguro en orden horario
+                    NodoActual.CrearPosible(-1);
+                    
+                }
+                else
+                {
+                    Debug.Log("no hay");
+                    NodoActual.CrearPosible(0);
+                    //CaminosVisitados.Add(NodoActual);
+                    NodoActual = NodoActual.Padre;
+                    NodoActual.CrearPosible(-1);
+                    
+
+                }
+                VecindadValida.Clear();
+                
+
+            } else
+                {
+                    Debug.Log("efesota");
+                }
+
+        }
+       
+
+
+        if (EditorType == 0)
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Vector3 mouseWordlPosition = UtilsClass.GetMouseWorldPosition();
+                    grilla.GetXY(mouseWordlPosition, out int x, out int y);
+                    if (grilla.GetGridObject(x, y).Grilla_Real != 1)
+                    {
+                        grilla.GetGridObject(x, y).CrearReal(1);
+                        Debug.Log("pozo hecho");
+
+                        foreach (CasillaNodo NodoValido in EncontrarVecindad(grilla.GetGridObject(x, y)))
+                        {
+                            NodoValido.CrearReal(3);
+                        }
+
+
+                    }
+                    else
+                    {
+                        grilla.GetGridObject(x, y).CrearReal(0);
+                        foreach (CasillaNodo NodoValido in EncontrarVecindad(grilla.GetGridObject(x, y)))
                         {
                             NodoValido.CrearReal(0);
                         }
+                        Debug.Log("retirado");
                     }
-                        MundoW.GetNodo(x, y).CrearReal(2);
+
+
+                }
+
+            }
+            if (EditorType == 1)
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Vector3 mouseWordlPosition = UtilsClass.GetMouseWorldPosition();
+                    grilla.GetXY(mouseWordlPosition, out int x, out int y);
+                    if (grilla.GetGridObject(x, y).Grilla_Real != 2)
+                    {
+
+                        if (WumpusExiste == false)
+                        {
+                            WumpusExiste = true;
+                        }
+                        else
+                        {
+                            grilla.GetGridObject(wumpus[0], wumpus[1]).CrearReal(0);
+                            foreach (CasillaNodo NodoValido in EncontrarVecindad(grilla.GetGridObject(wumpus[0], wumpus[1])))
+                            {
+                                NodoValido.CrearReal(0);
+                            }
+                        }
+                        grilla.GetGridObject(x, y).CrearReal(2);
                         wumpus[0] = x;
                         wumpus[1] = y;
-                        foreach (CasillaNodo NodoValido in MundoW.EncontrarVecindad(MundoW.GetNodo(x, y)))
+                        foreach (CasillaNodo NodoValido in EncontrarVecindad(grilla.GetGridObject(x, y)))
                         {
                             NodoValido.CrearReal(4);
-                        }           
+                        }
                         Debug.Log("wumpus hecho");
 
 
-                }
-                else
-                {
-                    MundoW.GetNodo(x, y).CrearReal(0);
-                    foreach (CasillaNodo NodoValido in MundoW.EncontrarVecindad(MundoW.GetNodo(x, y)))
-                    {
-                        NodoValido.CrearReal(0);
                     }
-                    Debug.Log("wumpus retirado");
-                    WumpusExiste = false;
+                    else
+                    {
+                        grilla.GetGridObject(x, y).CrearReal(0);
+                        foreach (CasillaNodo NodoValido in EncontrarVecindad(grilla.GetGridObject(x, y)))
+                        {
+                            NodoValido.CrearReal(0);
+                        }
+                        Debug.Log("wumpus retirado");
+                        WumpusExiste = false;
+                    }
+
+
                 }
-                MundoW.GetGrilla();
-              
+
             }
 
-        }
-
-        if (EditorType == 2)
-        {
-          
-            if (Input.GetMouseButtonDown(0))
+            if (EditorType == 2)
             {
-                Vector3 mouseWordlPosition = UtilsClass.GetMouseWorldPosition();
-                MundoW.GetGrilla().GetXY(mouseWordlPosition, out int x, out int y);
-                if (MundoW.GetNodo(x, y).Grilla_Real != 5)
-                {
 
-                  if (OroExiste == false)
-                            {
-                                OroExiste = true;
-                            }
-                            else
-                            {
-                                MundoW.GetNodo(oro[0], oro[1]).CrearReal(0);
-                                foreach (CasillaNodo NodoValido in MundoW.EncontrarVecindad(MundoW.GetNodo(oro[0], oro[1])))
-                                        {
-                                    NodoValido.CrearReal(0);
-                                }
-                            }
-                    MundoW.GetNodo(x, y).CrearReal(5);
-                    oro[0] = x;
-                    oro[1] = y;
-                    Debug.Log("oro hecho");
-                }
-                else
+                if (Input.GetMouseButtonDown(0))
                 {
-                    MundoW.GetNodo(x, y).CrearReal(0);
-                    OroExiste = false;
-                    Debug.Log("oro retirado");
+                    Vector3 mouseWordlPosition = UtilsClass.GetMouseWorldPosition();
+                    grilla.GetXY(mouseWordlPosition, out int x, out int y);
+                    if (grilla.GetGridObject(x, y).Grilla_Real != 5)
+                    {
+
+                        if (OroExiste == false)
+                        {
+                            OroExiste = true;
+                        }
+                        else
+                        {
+                            grilla.GetGridObject(oro[0], oro[1]).CrearReal(0);
+                            foreach (CasillaNodo NodoValido in EncontrarVecindad(grilla.GetGridObject(oro[0], oro[1])))
+                            {
+                                NodoValido.CrearReal(0);
+                            }
+                        }
+                        grilla.GetGridObject(x, y).CrearReal(5);
+                        oro[0] = x;
+                        oro[1] = y;
+                        Debug.Log("oro hecho");
+                    }
+                    else
+                    {
+                        grilla.GetGridObject(x, y).CrearReal(0);
+                        OroExiste = false;
+                        Debug.Log("oro retirado");
+                    }
+
+
                 }
-                MundoW.GetGrilla();
-               
+
             }
-
-        }
+       
 
 
 
@@ -187,7 +301,111 @@ public class juego : MonoBehaviour
 
     public void inicio()
     {
-        MundoW.ResolverCaminito(origenx, origeny);
+        //CasillaNodo StartNode = grilla.GetGridObject(, startY);
+
+
+    }
+
+    
+
+
+
+
+    public List<CasillaNodo> EncontrarVecindad(CasillaNodo nodoactual) //retorna la vecindad de la casilla nodoactual
+    {
+        List<CasillaNodo> ListaDeVecinos = new List<CasillaNodo>();
+        // Arriba
+        if (nodoactual.y + 1 < grilla.GetHeight()) ListaDeVecinos.Add(GetNodo(nodoactual.x, nodoactual.y + 1)); // si no se sale abajo añada el nodo de abajo a ListaDeVecinos 
+        //Derecha
+        if (nodoactual.x + 1 < grilla.GetWidth()) ListaDeVecinos.Add(GetNodo(nodoactual.x + 1, nodoactual.y)); // si no se sale a la derecha añada el nodo de la derecha a ListaDeVecinos 
+        // Abajo 
+        if (nodoactual.y - 1 >= 0) ListaDeVecinos.Add(GetNodo(nodoactual.x, nodoactual.y - 1)); // si no se sale a la arriba añada el nodo de arriba a ListaDeVecinos 
+        //Izquierda
+        if (nodoactual.x - 1 >= 0) ListaDeVecinos.Add(GetNodo(nodoactual.x - 1, nodoactual.y)); // si no se sale a la izquierda añada el nodo de la izquierda a ListaDeVecinos 
+
+        return ListaDeVecinos;
+
+    }
+
+
+    private CasillaNodo EvaluarVecindadMov(List<CasillaNodo> ListaNodos)
+    {
+
+        CasillaNodo CasillaMejor;
+
+        for (int i = 0; i < ListaNodos.Count; i++)
+        {
+            if (ListaNodos[i].Grilla_Agente == 0)
+            {
+                Debug.Log("sig_segura");
+                CasillaMejor = ListaNodos[i];
+                return CasillaMejor;
+            }
+
+        }
+        return null;
+    }
+
+
+    private void EvaluarVecindadEfectos(CasillaNodo nodoactual)
+    {
+
+        if (nodoactual.Grilla_Real == 0) // si en la real no hay nada -> la vecindad es segura
+        {
+            
+            foreach (CasillaNodo nodoVecino in EncontrarVecindad(nodoactual))
+            {
+                nodoVecino.CrearPosible(0);
+                Debug.Log("vecindad segura");
+            }
+        }
+
+        if (nodoactual.Grilla_Real == 1) // si en la real hay un pozo c muere
+        {
+            // c muere
+        }
+
+        if (nodoactual.Grilla_Real == 2) // si en la real hay un wumpus c muere
+        {
+            // c muere
+        }
+
+        if (nodoactual.Grilla_Real == 3) // si en la real hay brisa, la vecindad es pozo posible
+        {
+            foreach (CasillaNodo nodoVecino in EncontrarVecindad(nodoactual))
+            {
+
+
+
+                if(nodoVecino.Grilla_Agente != 0)
+                {
+                    nodoVecino.CrearPosible(1);
+                }
+                
+         
+            }
+        }
+
+        if (nodoactual.Grilla_Real == 4) // si en la real hay edor, la vecindad es wumpus posible
+        {
+            foreach (CasillaNodo nodoVecino in EncontrarVecindad(nodoactual))
+            {
+                if (nodoVecino != nodoactual.Padre)
+                {
+                    nodoVecino.CrearPosible(2);
+                }
+            }
+        }
+
+        if (nodoactual.Grilla_Real == 5) // si en la real hay oro, somos ricos gg 100% real 
+        {
+            // gana
+        }
+    }
+
+    public CasillaNodo GetNodo(int x, int y)
+    {
+        return grilla.GetGridObject(x, y);
     }
 
 }
