@@ -53,7 +53,7 @@ public class PathfindingVisualPlayer : MonoBehaviour
 
                 CasillaNodo CasillaNodo = grid.GetGridObject(x, y);
 
-                if (CasillaNodo.Grilla_Agente != tipo)
+                if (CasillaNodo.Grilla_Agente != tipo || CasillaNodo.Grilla_Real == 5)
                 {
                     quadSize = Vector3.zero;
                 }

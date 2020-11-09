@@ -10,7 +10,7 @@ public class juego : MonoBehaviour
     private int origeny = 0;
     private int origenx = 0;
     private bool WumpusExiste = false;
-    private bool OroExiste = false;
+    private bool OroExiste = false, oroencontrado = false;
     private int[] wumpus = { 0, 0 };
     private int[] oro = { 0, 0 };
 
@@ -18,7 +18,7 @@ public class juego : MonoBehaviour
     private List<CasillaNodo> SegurosSinVisitar;
     private List<CasillaNodo> CaminosVisitados;
     private List<CasillaNodo> VecindadValida;
-    private CasillaNodo NodoActual,StartNode;
+    private CasillaNodo NodoActual,StartNode,aux;
     //[SerializeField] private PathfindingDebugStepVisual pathfindingDebugStepVisual;
 
 
@@ -75,7 +75,13 @@ public class juego : MonoBehaviour
     {
 
         if (Input.GetKeyDown(KeyCode.Space))
-        {
+        { 
+            
+            EvaluarVecindadEfectos(NodoActual);
+            if(oroencontrado == false)
+            {
+
+            
             if (SegurosSinVisitar.Count > 0) // mientras que haya casillas seguras sin visitar
             {
                 Debug.Log("movimiento");
@@ -83,7 +89,7 @@ public class juego : MonoBehaviour
                 SegurosSinVisitar.Remove(NodoActual);
                 NodoActual.visitar(true);
 
-                EvaluarVecindadEfectos(NodoActual);
+               
                 //VecindadValida = ValorarVecindad(NodoActual);
 
                 foreach (CasillaNodo NodoValido in EncontrarVecindad(NodoActual)) // para cada vecino valido ....
@@ -103,12 +109,14 @@ public class juego : MonoBehaviour
                         else
                         {
                             VecindadValida.Add(NodoValido);
-                            Debug.Log("añade vecindad");
-                            if (!SegurosSinVisitar.Contains(NodoValido))
-                            {
-                                Debug.Log("añade nodo");
-                                SegurosSinVisitar.Add(NodoValido);
-                            }
+                            SegurosSinVisitar.Add(NodoValido);
+
+                            //Debug.Log("añade vecindad");
+                            //if (!SegurosSinVisitar.Contains(NodoValido))
+                            //{
+                            //    Debug.Log("añade nodo");
+                            //    SegurosSinVisitar.Add(NodoValido);
+                            //}
 
                         }
                        
@@ -127,8 +135,9 @@ public class juego : MonoBehaviour
                     Debug.Log("se mueve");
                     NodoActual.CrearPosible(0);
                     CaminosVisitados.Add(NodoActual);
-                    NodoActual.Crearpadre(NodoActual);
+                    aux = NodoActual;
                     NodoActual = EvaluarVecindadMov(VecindadValida); // el nodo al que se mueve es el mejor que determina evaluarvecindad ... osea el primero que encuentra seguro en orden horario
+                    NodoActual.Crearpadre(aux);
                     NodoActual.CrearPosible(-1);
                     
                 }
@@ -137,6 +146,9 @@ public class juego : MonoBehaviour
                     Debug.Log("no hay");
                     NodoActual.CrearPosible(0);
                     //CaminosVisitados.Add(NodoActual);
+
+
+
                     NodoActual = NodoActual.Padre;
                     NodoActual.CrearPosible(-1);
                     
@@ -149,6 +161,12 @@ public class juego : MonoBehaviour
                 {
                     Debug.Log("efesota");
                 }
+
+            }
+            else
+            {
+                Debug.Log("Ganaste");
+            }
 
         }
        
@@ -301,7 +319,14 @@ public class juego : MonoBehaviour
 
     public void inicio()
     {
-        //CasillaNodo StartNode = grilla.GetGridObject(, startY);
+        if (!WumpusExiste)
+        {
+            int RandomXW = Random.Range(5 , 20);
+            int RandomXW = Random.Range(5, 20);
+
+
+        }
+         private bool OroExiste
 
 
     }
@@ -375,8 +400,6 @@ public class juego : MonoBehaviour
             foreach (CasillaNodo nodoVecino in EncontrarVecindad(nodoactual))
             {
 
-
-
                 if(nodoVecino.Grilla_Agente != 0)
                 {
                     nodoVecino.CrearPosible(1);
@@ -390,7 +413,7 @@ public class juego : MonoBehaviour
         {
             foreach (CasillaNodo nodoVecino in EncontrarVecindad(nodoactual))
             {
-                if (nodoVecino != nodoactual.Padre)
+                if (nodoVecino.Grilla_Agente != 0)
                 {
                     nodoVecino.CrearPosible(2);
                 }
@@ -399,7 +422,7 @@ public class juego : MonoBehaviour
 
         if (nodoactual.Grilla_Real == 5) // si en la real hay oro, somos ricos gg 100% real 
         {
-            // gana
+            oroencontrado = true;
         }
     }
 
